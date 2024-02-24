@@ -1,13 +1,15 @@
 import { LightningElement, wire, api } from 'lwc';
 import getCustomMetadataFields from '@salesforce/apex/CustomPathController.getCustomMetadataFields';
 import getFieldsValues from '@salesforce/apex/CustomPathController.getFieldsValues';
+import getObjectName from '@salesforce/apex/CustomPathController.getObjectName';
 
 
 export default class CustomPath extends LightningElement {
-    metadataFields;
     stepFields;
     fieldsValues;
+    objectName;
     @api recordId;
+
 
     @wire(getCustomMetadataFields)
     wiredMetadata({ error, data }) {
@@ -15,38 +17,87 @@ export default class CustomPath extends LightningElement {
             // Supposons que vous n'avez qu'une seule entrée dans votre tableau.
             // Adaptez la logique ci-dessous si vous attendez plusieurs entrées.
             console.log('donnee apex : ', data);
-            this.metadataFields = data.map(record => ({
-                StepId: record.QualifiedApiName,
-                StepName: record.MasterLabel,
-                ObjName: record.ObjectName__c,
-                fields: record.CustomPathFields__r
-            }));
-            console.log('this.metadataFields : ', this.metadataFields);
+            let tdata = this.transformInputData(data);
+            console.log('donnee tranformee : ', tdata);
+            this.stepFields = this.extractSteps(tdata);
+            console.log('steps : ', this.stepFields);
+
+            getObjectName({ recordIdString: this.recordId })
+            .then(result => {
+                this.objectName = result;
+                console.log('objectName : ', this.objectName);
+            })
+            .catch(error => {
+              console.error(error);
+            });
+
         } else if (error) {
             console.error(error);
         }
     }
 
+  
+
+    transformInputData(inputArray) {
+      const output = [];
+
+      inputArray.forEach(item => {
+        let objectEntry = output.find(obj => obj.ObjectName__c === item.Object__r.ObjectName__c);
+    
+        if (!objectEntry) {
+          objectEntry = {
+            ObjectName__c: item.Object__r.ObjectName__c,
+            Active__c: item.Object__r.Active__c,
+            steps: []
+          };
+          output.push(objectEntry);
+        }
+    
+        const step = {
+          StepName__c: item.StepName__c,
+          StepNum__c: item.StepNum__c,
+          stepFields: item.CustomPathFields__r ? item.CustomPathFields__r.map(field => ({
+            FieldApiName: field.FieldApiName__c
+          })) : []
+        };
+
+        objectEntry.steps.push(step);
+      });
+    
+      return output;
+    
+    }
+
+    extractSteps(input) {
+      // Initialise un tableau pour contenir toutes les étapes extraites
+      const allSteps = [];
+    
+      // Itère sur chaque objet dans le tableau d'entrée
+      input.forEach(item => {
+        // Vérifie si l'objet actuel a un tableau 'steps' et l'ajoute au tableau allSteps
+        if (item.steps && Array.isArray(item.steps)) {
+          allSteps.push(...item.steps);
+        }
+      });
+    
+      // Retourne le tableau de toutes les étapes extraites
+      return allSteps;
+    }
+
+
     displayKeyFields(event) {
-        const stepName = event.currentTarget.dataset.step; // Récupère la valeur de l'attribut data-step
-        this.stepFields = this.metadataFields.find(step => step.StepName === stepName).fields;
-        console.log('fields : ', this.stepFields);
+        const currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
+        let stepFields = this.stepFields.find(step => step.StepNum__c === currStepNum).stepFields;
+        console.log('stepFields : ', stepFields);
 
-
-        //how to transform the fields to a map Map<String, String> fieldsValues to be used as param of the apex method updateFieldsValues
-        this.fieldsValues = this.stepFields.reduce((map, item) => {
-            map[item.FieldApiName__c] = '';
-            return map;
-        }, {});
-
-        console.log('fieldsValues : ', this.fieldsValues);
-        console.log('recordId : ', this.recordId);
 
         //call apex method updateFieldsValues to get the values of the fields
-        getFieldsValues({ objectName: 'Contact', fieldsValues: this.fieldsValues, recordId: this.recordId })
+        getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(stepFields), recordId: this.recordId })
             .then(result => {
-                this.fieldsValues = result;
+                this.fieldsValues = JSON.parse(result);
                 console.log('result : ', result);
+                console.log('fieldsValues : ', result);
+
             })
             .catch(error => {
                 console.error(error);

@@ -19,10 +19,10 @@
                     <div class="slds-path__scroller">
                         <div class="slds-path__scroller_inner">
                             <ul class="slds-path__nav" role="listbox" aria-orientation="horizontal" aria-labelledby="slds-path__stage-name">
-                                <template for:each={metadataFields} for:item="step">
+                                <template for:each={stepFields} for:item="step">
                                     <li
-                                        key={step.StepId}
-                                        data-step={step.StepId}
+                                        key={step.StepNum__c}
+                                        data-step={step.StepNum__c}
                                         class="slds-path__item slds-is-complete"
                                         role="presentation"
                                         onclick={displayKeyFields}
@@ -34,7 +34,7 @@
                                                 </svg>
                                                 <span class="slds-assistive-text">Stage Complete</span>
                                             </span>
-                                            <span class="slds-path__title">{step.StepName}</span>
+                                            <span class="slds-path__title">{step.StepName__c}</span>
                                         </a>
                                     </li>
                                 </template>
@@ -66,9 +66,9 @@
                         </div>
                         <div class="slds-form" role="list">
                             <!-- iterate over this.fieldsValues instead of stepFields-->
-                            <lightning-record-edit-form record-id={recordId} object-api-name="Contact" onsuccess={handleSuccess}>
-                                <template for:each={stepFields} for:item="field">
-                                    <lightning-input-field key={field.FieldApiName__c} field-name={field.FieldApiName__c}> </lightning-input-field>
+                            <lightning-record-edit-form record-id={recordId} object-api-name={objectName} onsuccess={handleSuccess}>
+                                <template for:each={fieldsValues} for:item="fv">
+                                    <lightning-input-field key={fv.FieldApiName} field-name={fv.FieldApiName} value={fv.Value}>  </lightning-input-field>
                                 </template>
                                 <lightning-button variant="brand" type="submit" name="save" label="save"></lightning-button>
                             </lightning-record-edit-form>
