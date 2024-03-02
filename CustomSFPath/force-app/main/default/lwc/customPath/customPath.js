@@ -8,6 +8,7 @@ export default class CustomPath extends LightningElement {
     stepFields;
     fieldsValues;
     objectName;
+    toggleDetail = true;
     @api recordId;
 
 
@@ -108,5 +109,14 @@ export default class CustomPath extends LightningElement {
 
     handleSuccess(event) {
         console.log('save handleSuccess : ', event.detail);
+    }
+
+    toggleDetailSection(event) {
+        
+        this.toggleDetail = !this.toggleDetail;
+        let icon = this.template.querySelector('.slds-button');
+        console.log('icon : ', icon);
+        icon.classList.toggle('down');
+        icon.classList.remove('slds-path__trigger_open');
     }
 }

@@ -27,7 +27,7 @@ public with sharing class CustomPathController {
         // Remplacez 'YourCustomMetadataType__mdt' par le nom de votre CMT
 
         List<CustomPathSteps__mdt> metadataFields = [
-            SELECT object__r.ObjectName__c, object__r.Active__c, stepName__c, stepNum__c, (SELECT FieldApiName__c FROM CustomPathFields__r)
+            SELECT object__r.ObjectName__c, object__r.Active__c, stepName__c, stepNum__c, GuideSelling__c, (SELECT FieldApiName__c FROM CustomPathFields__r)
             FROM CustomPathSteps__mdt
             WHERE object__r.Active__c = TRUE
             ORDER BY stepNum__c ASC

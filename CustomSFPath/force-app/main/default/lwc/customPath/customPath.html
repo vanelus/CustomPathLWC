@@ -1,18 +1,19 @@
 <template>
-    <div class="slds-region_medium" style="width: 1000px">
+    <div class="slds-region_medium" style="width: 100%">
         <!-- make width div take all space avalaible-->
 
         <div class="slds-path slds-path_has-coaching slds-is-expanded">
             <div class="slds-grid slds-path__track slds-has-overflow">
                 <div class="slds-grid slds-path__scroller-container">
                     <button
-                        class="slds-button slds-button_icon slds-button_icon-border-filled slds-path__trigger slds-path__trigger_open"
+                        class="rotate slds-button slds-button_icon slds-button_icon-border-filled slds-path__trigger slds-path__trigger_open"
                         title="Toggle Sales Coaching"
                         aria-expanded="true"
                         aria-controls="path-coaching-2"
+                        onclick={toggleDetailSection}
                     >
                         <svg class="slds-button__icon" aria-hidden="true">
-                            <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#chevronright"></use>
+                            <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#chevronright"></use>
                         </svg>
                         <span class="slds-assistive-text">Show Details</span>
                     </button>
@@ -23,14 +24,14 @@
                                     <li
                                         key={step.StepNum__c}
                                         data-step={step.StepNum__c}
-                                        class="slds-path__item slds-is-complete"
+                                        class="slds-path__item slds-is-current slds-is-active"
                                         role="presentation"
                                         onclick={displayKeyFields}
                                     >
                                         <a aria-selected="false" class="slds-path__link" href="#" id="path-56" role="option" tabindex="-1">
                                             <span class="slds-path__stage">
                                                 <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
-                                                    <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#check"></use>
+                                                    <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#check"></use>
                                                 </svg>
                                                 <span class="slds-assistive-text">Stage Complete</span>
                                             </span>
@@ -42,13 +43,13 @@
                             <div class="slds-path__scroll-controls">
                                 <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll left" tabindex="-1">
                                     <svg class="slds-button__icon" aria-hidden="true">
-                                        <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#left"></use>
+                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#left"></use>
                                     </svg>
                                     <span class="slds-assistive-text">Scroll left</span>
                                 </button>
                                 <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll right" tabindex="-1">
                                     <svg class="slds-button__icon" aria-hidden="true">
-                                        <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"></use>
+                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#right"></use>
                                     </svg>
                                     <span class="slds-assistive-text">Scroll right</span>
                                 </button>
@@ -57,36 +58,39 @@
                     </div>
                 </div>
             </div>
-            <div class="slds-path__content" id="path-coaching-2">
-                <div class="slds-path__coach slds-grid">
-                    <div class="slds-path__keys">
-                        <div class="slds-grid slds-grid_align-spread slds-path__coach-title">
-                            <h2>Key Fields This Stage</h2>
-                            <button class="slds-button slds-path__coach-edit slds-text-body_small">Edit</button>
+            <template lwc:if={toggleDetail}>
+                <div class="slds-path__content" id="path-coaching-2">
+                    <div class="slds-path__coach slds-grid">
+                        <div class="slds-path__keys">
+                            <div class="slds-grid slds-grid_align-spread slds-path__coach-title">
+                                <h2>Key Fields This Stage</h2>
+                                <button class="slds-button slds-path__coach-edit slds-text-body_small">Edit</button>
+                            </div>
+                            <div class="slds-form" role="list">
+                                <!-- iterate over this.fieldsValues instead of stepFields-->
+                                <lightning-record-edit-form record-id={recordId} object-api-name={objectName} onsuccess={handleSuccess}>
+                                    <template for:each={fieldsValues} for:item="fv">
+                                        <lightning-input-field key={fv.FieldApiName} field-name={fv.FieldApiName} value={fv.Value}>  </lightning-input-field>
+                                    </template>
+                                    <lightning-button variant="brand" type="submit" name="save" label="save"></lightning-button>
+                                </lightning-record-edit-form>
+                            </div>
                         </div>
-                        <div class="slds-form" role="list">
-                            <!-- iterate over this.fieldsValues instead of stepFields-->
-                            <lightning-record-edit-form record-id={recordId} object-api-name={objectName} onsuccess={handleSuccess}>
-                                <template for:each={fieldsValues} for:item="fv">
-                                    <lightning-input-field key={fv.FieldApiName} field-name={fv.FieldApiName} value={fv.Value}>  </lightning-input-field>
-                                </template>
-                                <lightning-button variant="brand" type="submit" name="save" label="save"></lightning-button>
-                            </lightning-record-edit-form>
-                        </div>
-                    </div>
-                    <div class="slds-path__guidance">
-                        <h2 class="slds-path__coach-title">Guidance for Success</h2>
-                        <div class="slds-text-longform slds-path__guidance-content">
-                            <p>Regularly cross-sell related products using <a href="#">cross-sell tactics and principles</a>.</p>
-                            <p>
-                                Prepare demo deck using the <a href="#">latest template</a> and review with Marketing and Sales teams. Review demo
-                                copy with Legal and Doc team.
-                            </p>
-                            <p>Look up <a href="#">needs analysis principles</a> and review selling plan with Sales Engineer.</p>
+                        <div class="slds-path__guidance">
+                            <h2 class="slds-path__coach-title">Guidance for Success</h2>
+                            <div class="slds-text-longform slds-path__guidance-content">
+                                <p>Regularly cross-sell related products using <a href="#">cross-sell tactics and principles</a>.</p>
+                                <p>
+                                    Prepare demo deck using the <a href="#">latest template</a> and review with Marketing and Sales teams. Review demo
+                                    copy with Legal and Doc team.
+                                </p>
+                                <p>Look up <a href="#">needs analysis principles</a> and review selling plan with Sales Engineer.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
+
         </div>
     </div>
 </template>
