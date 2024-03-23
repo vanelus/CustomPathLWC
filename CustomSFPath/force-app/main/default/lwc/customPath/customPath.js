@@ -113,7 +113,7 @@ export default class CustomPath extends LightningElement {
         let icon = this.template.querySelector('.slds-button');
         console.log('icon : ', icon);
         icon.classList.toggle('down');
-        icon.classList.remove('slds-path__trigger_open');
+       // icon.classList.remove('slds-path__trigger_open');
     }
 
     getAllFields(stepFields) {
