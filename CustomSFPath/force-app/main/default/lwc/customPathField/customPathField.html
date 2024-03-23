@@ -1,0 +1,30 @@
+<template>
+    <div class="slds-path__content" id="path-coaching-2">
+
+        <div class="slds-path__coach slds-grid">
+            <div class="slds-path__keys">
+                <div class="slds-grid slds-grid_align-spread slds-path__coach-title">
+                    <h2>Key Fields This Stage</h2>
+                    <button class="slds-button slds-path__coach-edit slds-text-body_small">Edit</button>
+                </div>
+                <div class="slds-form" role="list">
+                    <!-- iterate over this.fieldValues instead of stepFields-->
+                    <lightning-record-edit-form record-id={recordId} object-api-name={objectName} onsuccess={handleSuccess}>
+                        <template for:each={fieldValues} for:item="fv">
+                            <lightning-input-field key={fv.FieldApiName} field-name={fv.FieldApiName} value={fv.Value}>  </lightning-input-field>
+                        </template>
+                        <lightning-button variant="brand" type="submit" name="save" label="save"></lightning-button>
+                    </lightning-record-edit-form>
+                </div>
+            </div>
+            <div class="slds-path__guidance">
+                <h2 class="slds-path__coach-title">Guidance for Success</h2>
+                <div class="slds-text-longform slds-path__guidance-content">
+                    <p>
+                        {guideSelling}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
