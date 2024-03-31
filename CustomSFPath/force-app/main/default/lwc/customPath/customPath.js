@@ -5,10 +5,10 @@ import getObjectName from '@salesforce/apex/CustomPathController.getObjectName';
 import CustomPathField from 'c/customPathField';
 
 export default class CustomPath extends LightningElement {
-    @api stepFields;
-    @api fieldsValues;
-    @api objectName;  
-    @api currStepNum;
+    @track stepFields;
+    fieldsValues;
+    @track objectName;  
+    @track currStepNum=1;
     toggleDetail = true;
     @api recordId;
 
@@ -24,7 +24,6 @@ export default class CustomPath extends LightningElement {
             this.stepFields = this.extractSteps(tdata);
             console.log('steps : ', this.stepFields);
             let fields = this.getAllFields(this.stepFields);
-            console.log('fields : ', fields);
 
           getObjectName({ recordIdString: this.recordId })
             .then(result => {
@@ -34,10 +33,12 @@ export default class CustomPath extends LightningElement {
             })
             .then(result => {
               this.fieldsValues = JSON.parse(result);
-              console.log('fieldsValues : ', this.fieldsValues);
-
-              dynamicCtor = Child;
-              dynamicProps = { name: 'Dynamic' };
+              console.log('fieldsValues : ', result);
+              let chilComp = this.template.querySelector('c-custom-path-field');
+              let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.currStepNum);
+              chilComp.currStepNum = this.currStepNum;
+              chilComp.step = JSON.stringify(stepfieldsValues);
+              chilComp.refresh();
             })
             .catch(error => {
               console.error(error);
@@ -100,10 +101,31 @@ export default class CustomPath extends LightningElement {
 
     displayKeyFields(event) {
         this.currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
-        console.log('currStepNum : ', this.currStepNum);
         let currentFields = this.stepFields.find(step => step.StepNum__c === this.currStepNum).stepFields;
-        console.log('currentFields : ', currentFields);
-        
+        let chilComp = this.template.querySelector('c-custom-path-field');
+        let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.currStepNum);
+        chilComp.step =  JSON.stringify(stepfieldsValues);
+        chilComp.currStepNum = this.currStepNum;
+        chilComp.objectName = 'Opportunity';
+        chilComp.refresh();
+
+    }
+
+    computeStepFieldValues(stepFields, fieldsValues, currStepNum) {
+        console.log('computeStepFieldValues');
+        const step = stepFields.find(step => step.StepNum__c === currStepNum);
+   
+        // Créez un tableau des FieldApiName dans stepFields
+        const stepFieldNames = step.stepFields.map(field => field.FieldApiName);
+
+        // Filtrez fieldsValues pour obtenir seulement les éléments dont FieldApiName est dans stepFieldNames
+        const currFieldValues = fieldsValues.filter(field => stepFieldNames.includes(field.FieldApiName));
+       
+        // Ajoutez fieldValues à l'objet step
+        step.fieldValues = currFieldValues;
+
+        // Retourne l'objet step
+        return step;
 
     }
 
@@ -111,9 +133,9 @@ export default class CustomPath extends LightningElement {
         
         this.toggleDetail = !this.toggleDetail;
         let icon = this.template.querySelector('.slds-button');
-        console.log('icon : ', icon);
+        console.log('toggleDetailSection : ', this.toggleDetail);
         icon.classList.toggle('down');
-       // icon.classList.remove('slds-path__trigger_open');
+
     }
 
     getAllFields(stepFields) {
@@ -132,4 +154,5 @@ export default class CustomPath extends LightningElement {
   
       return fieldValues;
   }
+
 }

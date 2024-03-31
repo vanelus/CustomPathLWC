@@ -59,11 +59,12 @@
                 </div>
             </div>
             <template lwc:if={toggleDetail}>
-                <template lwc:if={fieldsValues}>
+                <template lwc:if={recordId}>
                     <div>
-                        <c-custom-path-field object-name={objectName} curr-step-num={currStepNum} record-id={recordId} field-values={fieldsValues} guide-selling={guideSelling} ></c-custom-path-field>
+                        <c-custom-path-field object-name={objectName} record-id={recordId} ></c-custom-path-field>
                     </div>
                 </template>
+                <p style="tex-color:red"> Manger bouger </p>
             </template>
 
         </div>
