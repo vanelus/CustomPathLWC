@@ -1,72 +1,76 @@
 <template>
-    <div class="slds-region_medium" style="width: 100%">
-        <!-- make width div take all space avalaible-->
-
-        <div class="slds-path slds-path_has-coaching slds-is-expanded">
-            <div class="slds-grid slds-path__track slds-has-overflow">
-                <div class="slds-grid slds-path__scroller-container">
-                    <button
-                        class="rotate slds-button slds-button_icon slds-button_icon-border-filled slds-path__trigger slds-path__trigger_open"
-                        title="Toggle Sales Coaching"
-                        aria-expanded="true"
-                        aria-controls="path-coaching-2"
-                        onclick={toggleDetailSection}
-                    >
-                        <svg class="slds-button__icon" aria-hidden="true">
-                            <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#chevronright"></use>
-                        </svg>
-                        <span class="slds-assistive-text">Show Details</span>
-                    </button>
-                    <div class="slds-path__scroller">
-                        <div class="slds-path__scroller_inner">
-                            <ul class="slds-path__nav" role="listbox" aria-orientation="horizontal" aria-labelledby="slds-path__stage-name">
-                                <template for:each={stepFields} for:item="step">
-                                    <li
-                                        key={step.StepNum__c}
-                                        data-step={step.StepNum__c}
-                                        class="slds-path__item slds-is-current slds-is-active"
-                                        role="presentation"
-                                        onclick={displayKeyFields}
-                                    >
-                                        <a aria-selected="false" class="slds-path__link" href="#" id="path-56" role="option" tabindex="-1">
-                                            <span class="slds-path__stage">
-                                                <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
-                                                    <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#check"></use>
-                                                </svg>
-                                                <span class="slds-assistive-text">Stage Complete</span>
-                                            </span>
-                                            <span class="slds-path__title">{step.StepName__c}</span>
-                                        </a>
-                                    </li>
-                                </template>
-                            </ul>
-                            <div class="slds-path__scroll-controls">
-                                <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll left" tabindex="-1">
-                                    <svg class="slds-button__icon" aria-hidden="true">
-                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#left"></use>
-                                    </svg>
-                                    <span class="slds-assistive-text">Scroll left</span>
-                                </button>
-                                <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll right" tabindex="-1">
-                                    <svg class="slds-button__icon" aria-hidden="true">
-                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#right"></use>
-                                    </svg>
-                                    <span class="slds-assistive-text">Scroll right</span>
-                                </button>
+    <template lwc:if={fieldsValues}>
+        <div class="slds-region_medium" style="width: 100%">
+            <!-- make width div take all space avalaible-->
+    
+            <div class="slds-path slds-path_has-coaching slds-is-expanded">
+                <div class="slds-grid slds-path__track slds-has-overflow">
+                    <div class="slds-grid slds-path__scroller-container">
+                        <button
+                            class="rotate slds-button slds-button_icon slds-button_icon-border-filled slds-path__trigger slds-path__trigger_open"
+                            title="Toggle Sales Coaching"
+                            aria-expanded="true"
+                            aria-controls="path-coaching-2"
+                            onclick={toggleDetailSection}
+                        >
+                            <svg class="slds-button__icon" aria-hidden="true">
+                                <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#chevronright"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Show Details</span>
+                        </button>
+                        <div class="slds-path__scroller">
+                            <div class="slds-path__scroller_inner">
+                                <ul class="slds-path__nav" role="listbox" aria-orientation="horizontal" aria-labelledby="slds-path__stage-name">
+                                    <template for:each={stepFields} for:item="step">
+                                        <li
+                                            key={step.StepNum__c}
+                                            data-step={step.StepNum__c}
+                                            class="slds-path__item slds-is-current slds-is-active"
+                                            role="presentation"
+                                            onclick={displayKeyFields}
+                                        >
+                                            <a aria-selected="false" class="slds-path__link" href="#" id="path-56" role="option" tabindex="-1">
+                                                <span class="slds-path__stage">
+                                                    <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#check"></use>
+                                                    </svg>
+                                                    <span class="slds-assistive-text">Stage Complete</span>
+                                                </span>
+                                                <span class="slds-path__title">{step.StepName__c}</span>
+                                            </a>
+                                        </li>
+                                    </template>
+                                </ul>
+                                <div class="slds-path__scroll-controls">
+                                    <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll left" tabindex="-1">
+                                        <svg class="slds-button__icon" aria-hidden="true">
+                                            <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#left"></use>
+                                        </svg>
+                                        <span class="slds-assistive-text">Scroll left</span>
+                                    </button>
+                                    <button class="slds-button slds-button_icon slds-button_icon-border-filled" title="Scroll right" tabindex="-1">
+                                        <svg class="slds-button__icon" aria-hidden="true">
+                                            <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#right"></use>
+                                        </svg>
+                                        <span class="slds-assistive-text">Scroll right</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <template lwc:if={toggleDetail}>
-                <template lwc:if={recordId}>
-                    <div>
-                        <c-custom-path-field object-name={objectName} record-id={recordId} ></c-custom-path-field>
-                    </div>
+                <template lwc:if={toggleDetail}>
+                    <template lwc:if={recordId}>
+                        <div>
+                            <c-custom-path-field object-name={objectName} record-id={recordId} ></c-custom-path-field>
+                        </div>
+                    </template>
+                    <p style="tex-color:red"> Manger bouger </p>
                 </template>
-                <p style="tex-color:red"> Manger bouger </p>
-            </template>
-
+    
+            </div>
         </div>
-    </div>
+    </template>
+        
+
 </template>

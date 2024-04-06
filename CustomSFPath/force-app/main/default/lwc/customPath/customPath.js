@@ -13,22 +13,20 @@ export default class CustomPath extends LightningElement {
     @api recordId;
 
 
-    @wire(getCustomMetadataFields)
+    @wire(getObjectName , { recordIdString: "$recordId" } )
     wiredMetadata({ error, data }) {
         if (data) {
-            // Supposons que vous n'avez qu'une seule entrée dans votre tableau.
-            // Adaptez la logique ci-dessous si vous attendez plusieurs entrées.
-            console.log('donnee apex : ', data);
-            let tdata = this.transformInputData(data);
-            console.log('donnee tranformee : ', tdata);
-            this.stepFields = this.extractSteps(tdata);
-            console.log('steps : ', this.stepFields);
-            let fields = this.getAllFields(this.stepFields);
-
-          getObjectName({ recordIdString: this.recordId })
+            this.objectName = data;
+            console.log('objectName : ', this.objectName);
+            
+            getCustomMetadataFields({ currentObjectName: this.objectName })
             .then(result => {
-              this.objectName = result;
-              console.log('objectName : ', this.objectName);
+              console.log(' steps  : ', result);
+              let tdata = this.transformInputData(result);
+              console.log('donnee tranformee : ', tdata);
+              this.stepFields = this.extractSteps(tdata);
+              console.log('steps : ', this.stepFields);
+              let fields = this.getAllFields(this.stepFields);
               return getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(fields), recordId: this.recordId });
             })
             .then(result => {
