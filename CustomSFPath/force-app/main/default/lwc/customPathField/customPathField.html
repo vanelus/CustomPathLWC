@@ -1,6 +1,6 @@
 <template>
     <div class="slds-path__content" id="path-coaching-2">
-        <template lwc:if={stepObj}>
+        <template lwc:if={step}>
             <div class="slds-path__coach slds-grid">
                 <div class="slds-path__keys">
                     <div class="slds-grid slds-grid_align-spread slds-path__coach-title">
@@ -10,7 +10,7 @@
                     <div class="slds-form" role="list">
                         <!-- iterate over this.fieldValues instead of stepFields-->
                         <lightning-record-edit-form record-id={recordId} object-api-name={objectName} onsuccess={handleSuccess}>
-                            <template for:each={stepObj.fieldValues} for:item="fv">
+                            <template for:each={step.fieldValues} for:item="fv">
                                 <lightning-input-field key={fv.FieldApiName} field-name={fv.FieldApiName} value={fv.Value}>  </lightning-input-field>
                             </template>
                             <lightning-button variant="brand" type="submit" name="save" label="save"></lightning-button>
@@ -21,7 +21,7 @@
                     <h2 class="slds-path__coach-title">Guidance for Success</h2>
                     <div class="slds-text-longform slds-path__guidance-content">
                         <p>
-                            {stepObj.GuideSelling__c}
+                            {step.GuideSelling__c}
                         </p>
                     </div>
                 </div>

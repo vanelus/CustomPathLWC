@@ -2,49 +2,59 @@ import { LightningElement, wire, api, track } from 'lwc';
 import getCustomMetadataFields from '@salesforce/apex/CustomPathController.getCustomMetadataFields';
 import getFieldsValues from '@salesforce/apex/CustomPathController.getFieldsValues';
 import getObjectName from '@salesforce/apex/CustomPathController.getObjectName';
-import CustomPathField from 'c/customPathField';
+import getCurrentObjectStatus from '@salesforce/apex/CustomPathController.getCurrentObjectStatus';
 
 export default class CustomPath extends LightningElement {
-    @track stepFields;
+    stepFields;
+    step;
+    steps;
     fieldsValues;
-    @track objectName;  
-    @track currStepNum=1;
+    objectName;  
+    currStepNum=1;
     toggleDetail = true;
     @api recordId;
+    statusFieldValue;
 
+    
+    connectedCallback() {
+      console.log('parent comp triggered');
+      getObjectName ({ recordIdString: "0061o00000fhhGmAAI" } )
+      .then(result => {
+          this.objectName = result;
+          console.log('objectName : ', this.objectName);
+          getCustomMetadataFields({ currentObjectName: this.objectName })
+          .then(result => {
+            console.log(' steps  : ', result);
+            this.steps = result;
+            let tdata = this.transformInputData(result);
+            this.stepFields = this.extractSteps(tdata);
+            console.log('stepFields : ', this.stepFields);
+            let fields = this.getAllFields(this.stepFields);
+            return getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(fields), recordId: this.recordId });
+          })
+          .then(result => {
+            this.fieldsValues = JSON.parse(result);
+            console.log('fieldsValues : ', result);
+            return getCurrentObjectStatus( { objectName: this.objectName, recordId: this.recordId , statusField: this.steps[0].Object__r.StatusField__c });
+          })
+          .then(result => {
+            this.statusFieldValue = result;
+            console.log('statusFieldValue : ', this.statusFieldValue);
+            let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.statusFieldValue);
+            console.log('stepfieldsValues : ', stepfieldsValues);
+            this.step = JSON.stringify(stepfieldsValues);
+          
+            let chilComp = this.template.querySelector('c-custom-path-field');
+            console.log('chilComp! : ', chilComp);
+            chilComp.step = this.step;
+            chilComp.refresh();
 
-    @wire(getObjectName , { recordIdString: "$recordId" } )
-    wiredMetadata({ error, data }) {
-        if (data) {
-            this.objectName = data;
-            console.log('objectName : ', this.objectName);
             
-            getCustomMetadataFields({ currentObjectName: this.objectName })
-            .then(result => {
-              console.log(' steps  : ', result);
-              let tdata = this.transformInputData(result);
-              console.log('donnee tranformee : ', tdata);
-              this.stepFields = this.extractSteps(tdata);
-              console.log('steps : ', this.stepFields);
-              let fields = this.getAllFields(this.stepFields);
-              return getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(fields), recordId: this.recordId });
-            })
-            .then(result => {
-              this.fieldsValues = JSON.parse(result);
-              console.log('fieldsValues : ', result);
-              let chilComp = this.template.querySelector('c-custom-path-field');
-              let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.currStepNum);
-              chilComp.currStepNum = this.currStepNum;
-              chilComp.step = JSON.stringify(stepfieldsValues);
-              chilComp.refresh();
-            })
-            .catch(error => {
-              console.error(error);
-            });
-
-        } else if (error) {
+          })
+          .catch(error => {
             console.error(error);
-        }
+          });
+      })
     }
 
   
@@ -101,17 +111,16 @@ export default class CustomPath extends LightningElement {
         this.currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
         let currentFields = this.stepFields.find(step => step.StepNum__c === this.currStepNum).stepFields;
         let chilComp = this.template.querySelector('c-custom-path-field');
+        console.log('displayKeyFields chilComp! : ', chilComp);
         let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.currStepNum);
         chilComp.step =  JSON.stringify(stepfieldsValues);
-        chilComp.currStepNum = this.currStepNum;
         chilComp.objectName = 'Opportunity';
         chilComp.refresh();
 
     }
 
-    computeStepFieldValues(stepFields, fieldsValues, currStepNum) {
-        console.log('computeStepFieldValues');
-        const step = stepFields.find(step => step.StepNum__c === currStepNum);
+    computeStepFieldValues(stepFields, fieldsValues, statusFieldValue) {
+        const step = stepFields.find(step => step.StepName__c === statusFieldValue);
    
         // Créez un tableau des FieldApiName dans stepFields
         const stepFieldNames = step.stepFields.map(field => field.FieldApiName);

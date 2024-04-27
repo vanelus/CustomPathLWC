@@ -26,13 +26,21 @@ public with sharing class CustomPathController {
     public static List<CustomPathSteps__mdt> getCustomMetadataFields(String currentObjectName) {
         system.debug('currentObjectName'+ currentObjectName);
         List<CustomPathSteps__mdt> metadataFields = [
-            SELECT object__r.ObjectName__c, object__r.Active__c, stepName__c, stepNum__c, GuideSelling__c, (SELECT FieldApiName__c FROM CustomPathFields__r)
+            SELECT object__r.ObjectName__c, object__r.Active__c, object__r.StatusField__c, stepName__c, stepNum__c, GuideSelling__c, (SELECT FieldApiName__c FROM CustomPathFields__r)
             FROM CustomPathSteps__mdt
             WHERE object__r.Active__c = TRUE
             AND object__r.ObjectName__c =: currentObjectName
             ORDER BY stepNum__c ASC
         ];
         return metadataFields;
+    }
+
+    //get current current object status field value
+    @AuraEnabled(cacheable=true)
+    public static String getCurrentObjectStatus(String objectName, String recordId, string statusField) {
+        String query = 'SELECT ' + statusField + ' FROM ' + objectName + ' WHERE Id = :recordId';
+        SObject record = Database.query(query);
+        return (String) record.get(statusField);
     }
 
     //get the fields values of the object objectName from a list of fields and for a specific recordId

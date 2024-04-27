@@ -4,7 +4,6 @@ export default class CustomPathField extends LightningElement {
     @api objectName;
     @api recordId;
     @api step;
-    stepObj;
 
     handleSuccess(event) {
         console.log('save handleSuccess : ', event.detail);
