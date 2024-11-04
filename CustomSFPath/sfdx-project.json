@@ -6,6 +6,7 @@
     }
   ],
   "name": "CustomSFPath",
+  "oauthLocalPort": 1718,
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "54.0"

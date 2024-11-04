@@ -23,13 +23,13 @@ public with sharing class CustomPathController {
 
     //get the list of fields for the object objectName
     @AuraEnabled(cacheable=true)
-    public static List<CustomPathSteps__mdt> getCustomMetadataFields(String currentObjectName) {
-        system.debug('currentObjectName'+ currentObjectName);
+    public static List<CustomPathSteps__mdt> getCustomMetadataFields(String sObjName) {
+        // Remplacez 'YourCustomMetadataType__mdt' par le nom de votre CMT
+
         List<CustomPathSteps__mdt> metadataFields = [
             SELECT object__r.ObjectName__c, object__r.Active__c, object__r.StatusField__c, stepName__c, stepNum__c, GuideSelling__c, (SELECT FieldApiName__c FROM CustomPathFields__r)
             FROM CustomPathSteps__mdt
-            WHERE object__r.Active__c = TRUE
-            AND object__r.ObjectName__c =: currentObjectName
+            WHERE object__r.Active__c = TRUE AND object__r.ObjectName__c =: sObjName
             ORDER BY stepNum__c ASC
         ];
         return metadataFields;
