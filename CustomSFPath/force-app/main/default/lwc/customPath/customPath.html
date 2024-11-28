@@ -24,7 +24,7 @@
                                     <li
                                         key={step.StepNum__c}
                                         data-step={step.StepNum__c}
-                                        class="slds-path__item slds-is-current slds-is-active"
+                                        class={step.classNames}
                                         role="presentation"
                                         onclick={displayKeyFields}
                                     >

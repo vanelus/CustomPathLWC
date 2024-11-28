@@ -7,7 +7,8 @@ import getCurrentObjectStatus from '@salesforce/apex/CustomPathController.getCur
 export default class CustomPath extends LightningElement {
     @track stepFields;
     @track fieldsValues;
-    @track objectName;  
+    @track objectName;
+    @track objectStatusValue;  
     @track currStepNum=1;
     @track toggleDetail = true;
     @api recordId;
@@ -20,20 +21,26 @@ export default class CustomPath extends LightningElement {
             // Adaptez la logique ci-dessous si vous attendez plusieurs entrées.
             console.log('retour getObjectName: ', data);
             this.objectName = data;
-
             getCustomMetadataFields({ sObjName: this.objectName })
             .then(result => {
               console.log('result : ', result);
 
               let tdata = this.transformInputData(result);
               console.log('donnee tranformee : ', tdata);
-              this.stepFields = this.extractSteps(tdata);
-              console.log('steps : ', this.stepFields);
+              this.stepFields = tdata[0].steps;
               console.log('recordid : ', this.recordId);
-              let fields = this.getAllFields(this.stepFields);
 
-              return getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(fields), recordId: this.recordId });
-
+              return getCurrentObjectStatus({ objectName: this.objectName, recordId: this.recordId , statusField: tdata[0].StatusField__c})
+            })
+            .then(result => {
+              this.objectStatusValue = result;
+              console.log('objectStatusValue : ', result);
+              this.stepFields.forEach(item => {
+                item.IsActive = item.StepName__c === this.objectStatusValue;
+                item.classNames = item.IsActive ? 'slds-path__item slds-is-current slds-is-active' : 'slds-path__item slds-is-incomplete';
+              });
+              console.log('stepFields : ', this.stepFields);
+              return getFieldsValues({ objectName: this.objectName, fieldsValuesJson: JSON.stringify(this.getAllFields(this.stepFields)), recordId: this.recordId });
             })
             .then(result => {
               this.fieldsValues = JSON.parse(result);
@@ -65,6 +72,7 @@ export default class CustomPath extends LightningElement {
           objectEntry = {
             ObjectName__c: item.Object__r.ObjectName__c,
             Active__c: item.Object__r.Active__c,
+            StatusField__c: item.Object__r.StatusField__c,
             steps: []
           };
           output.push(objectEntry);
@@ -86,21 +94,6 @@ export default class CustomPath extends LightningElement {
     
     }
 
-    extractSteps(input) {
-      // Initialise un tableau pour contenir toutes les étapes extraites
-      const allSteps = [];
-    
-      // Itère sur chaque objet dans le tableau d'entrée
-      input.forEach(item => {
-        // Vérifie si l'objet actuel a un tableau 'steps' et l'ajoute au tableau allSteps
-        if (item.steps && Array.isArray(item.steps)) {
-          allSteps.push(...item.steps);
-        }
-      });
-    
-      // Retourne le tableau de toutes les étapes extraites
-      return allSteps;
-    }
 
     displayKeyFields(event) {
       this.currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
