@@ -29,6 +29,8 @@ export default class CustomPath extends LightningElement {
     this.wiredObjectNameResult = result; // Nécessaire pour `refreshApex`
     if (result.data) {
       this.objectName = result.data;
+      this.setChannelName(this.objectName); // Définir le canal
+      this.subscribeToChannel(); // S'abonner au canal
     } else if (result.error) {
       console.error(result.error);
     }
@@ -104,52 +106,63 @@ export default class CustomPath extends LightningElement {
   }
 
 
-  connectedCallback() {
-    this.subscribeToChannel();
+    // Définir dynamiquement le canal d'écoute
+    setChannelName(objectName) {
+      this.channelName = `/data/${objectName}ChangeEvent`;
+      console.log('Channel name set to:', this.channelName);
   }
 
-  disconnectedCallback() {
-    this.unsubscribeFromChannel();
-  }
-
-  // S'abonner au Change Event
+  // Méthode pour s'abonner au canal
   subscribeToChannel() {
-    const messageCallback = (response) => {
-      console.log('Change Event Received: ', response);
-      this.handleEvent(response);
-    };
+      if (!this.channelName) {
+          console.error('Le nom du canal est vide. Impossible de s\'abonner.');
+          return;
+      }
 
-    subscribe(this.channelName, -1, messageCallback).then((response) => {
-      console.log('Subscription successful: ', response.channel);
-      this.subscription = response;
-    });
+      const messageCallback = (response) => {
+          console.log('Change Event Received: ', response);
+          this.handleEvent(response);
+      };
 
-    // Gestion des erreurs
-    onError((error) => {
-      console.error('Error received: ', error);
-    });
-  }
-
-  // Se désabonner du Change Event
-  unsubscribeFromChannel() {
-    if (this.subscription) {
-      unsubscribe(this.subscription, (response) => {
-        console.log('Unsubscribed successfully: ', response);
+      subscribe(this.channelName, -1, messageCallback).then((response) => {
+          console.log('Subscription successful: ', response.channel);
+          this.subscription = response;
       });
-    }
+
+      onError((error) => {
+          console.error('Error received: ', error);
+      });
   }
 
-  // Gérer les changements reçus
+  // Méthode pour se désabonner
+  unsubscribeFromChannel() {
+      if (this.subscription) {
+          unsubscribe(this.subscription, (response) => {
+              console.log('Unsubscribed successfully: ', response);
+          });
+      }
+  }
+
+  // Gérer les événements de changement
   handleEvent(response) {
-    const changeType = response.data.payload.ChangeEventHeader.changeType;
-    console.log('Change Type: ', changeType);
-    console.log('response.data.payload: ', JSON.stringify(response.data.payload));
+      console.log('Événement reçu :', JSON.stringify(response));
+      const changeType = response.data.payload.ChangeEventHeader.changeType;
+      console.log('Type de changement :', changeType);
 
     // Exemples d'actions selon le type de changement
     if (changeType === 'UPDATE') {
       this.refreshData(); // Logique pour actualiser les données
     }
   }
+
+  connectedCallback() {
+      console.log('Component initialized');
+  }
+
+  disconnectedCallback() {
+      this.unsubscribeFromChannel();
+  }
+
 
   refreshData() {
     console.log('Forcing data refresh...');
