@@ -5,110 +5,103 @@ import getObjectName from '@salesforce/apex/CustomPathController.getObjectName';
 import getCurrentObjectStatus from '@salesforce/apex/CustomPathController.getCurrentObjectStatus';
 import { subscribe, unsubscribe, onError } from 'lightning/empApi';
 import { refreshApex } from '@salesforce/apex';
- 
+
 
 
 export default class CustomPath extends LightningElement {
   @track stepFields;
   @track fieldsValues;
-  @track objectName;
+  @api objectName;
   @track objectStatusValue;
   @track currStepNum = 1;
   @track toggleDetail = true;
   @api recordId;
   wiredCustomMetadataFieldsResult;
+  wiredObjectStatus;
   pathStatusField;
   wiredObjectNameResult;
   channelName = '/data/OpportunityChangeEvent';
   subscription = null;
 
   // 1. Utiliser `@wire` pour charger l'objet
-@wire(getObjectName, { recordIdString: '$recordId' })
-wiredObjectName(result) {
+  @wire(getObjectName, { recordIdString: '$recordId' })
+  wiredObjectName(result) {
     this.wiredObjectNameResult = result; // Nécessaire pour `refreshApex`
     if (result.data) {
-        this.objectName = result.data;
-        this.loadCustomMetadataFields(); // Appeler la méthode suivante
+      this.objectName = result.data;
     } else if (result.error) {
-        console.error(result.error);
+      console.error(result.error);
     }
-}
+  }
 
-// 2. Charger les métadonnées
-loadCustomMetadataFields() {
-    getCustomMetadataFields({ sObjName: this.objectName })
-        .then((result) => {
-            let tdata = this.transformInputData(result)[0];
-            this.stepFields = tdata.steps;
-            this.pathStatusField = tdata.StatusField__c;
-            console.log('Étapes transformées :', this.stepFields);
-            this.loadCurrentObjectStatus(); // Appeler la méthode suivante
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-}
 
-// 3. Charger le statut courant de l'objet
-loadCurrentObjectStatus() {
-    getCurrentObjectStatus({
-        objectName: this.objectName,
-        recordId: this.recordId,
-        statusField: this.pathStatusField, // Exemple d'utilisation
-    })
-        .then((result) => {
-            this.objectStatusValue = result;
-            console.log('Statut courant :', this.objectStatusValue);
-            this.updateStepFields(); // Appeler la méthode suivante
-            this.loadFieldsValues(); // Charger les valeurs des champs
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-}
+  @wire(getCustomMetadataFields, { sObjName: '$objectName' })
+  wiredCustomMetadataFields(result) {
+    this.wiredCustomMetadataFieldsResult = result;
+    if (result.data) {
+      let tdata = this.transformInputData(result.data)[0];
+      this.stepFields = tdata.steps;
+      this.pathStatusField = tdata.StatusField__c;
+      console.log('Étapes transformées :', this.stepFields);
+    } else if (result.error) {
+      console.error(result.error);
+    }
+  }
 
-// 4. Mettre à jour les champs des étapes
-updateStepFields() {
+  @wire(getCurrentObjectStatus, { objectName: '$objectName', recordId: '$recordId', statusField: '$pathStatusField' })
+  wiredStatus(result) {
+    this.wiredObjectStatus = result;
+    if (result.data) {
+      this.objectStatusValue = result.data;
+      this.updateStepFields(); // Appeler la méthode suivante
+      this.loadFieldsValues(); // Charger les valeurs des champs
+    } else if (result.error) {
+      console.error(result.error);
+    }
+  }
+
+  // 4. Mettre à jour les champs des étapes
+  updateStepFields() {
     this.stepFields.forEach((item) => {
-        item.IsActive = item.StepName__c === this.objectStatusValue;
-        item.classNames = item.IsActive
-            ? 'slds-path__item slds-is-current slds-is-active'
-            : 'slds-path__item slds-is-incomplete';
+      item.IsActive = item.StepName__c === this.objectStatusValue;
+      item.classNames = item.IsActive
+        ? 'slds-path__item slds-is-current slds-is-active'
+        : 'slds-path__item slds-is-incomplete';
     });
-}
+  }
 
-// 5. Charger les valeurs des champs
-loadFieldsValues() {
+  // 5. Charger les valeurs des champs
+  loadFieldsValues() {
     const fieldsToLoad = JSON.stringify(this.getAllFields(this.stepFields));
     getFieldsValues({
-        objectName: this.objectName,
-        fieldsValuesJson: fieldsToLoad,
-        recordId: this.recordId,
+      objectName: this.objectName,
+      fieldsValuesJson: fieldsToLoad,
+      recordId: this.recordId,
     })
-        .then((result) => {
-            this.fieldsValues = JSON.parse(result);
-            console.log('Valeurs des champs :', this.fieldsValues);
-            this.refreshChildComponent();
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-}
+      .then((result) => {
+        this.fieldsValues = JSON.parse(result);
+        console.log('Valeurs des champs :', this.fieldsValues);
+        this.refreshChildComponent();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
-// Méthode pour rafraîchir le composant enfant
-refreshChildComponent() {
+  // Méthode pour rafraîchir le composant enfant
+  refreshChildComponent() {
     const childComp = this.template.querySelector('c-custom-path-field');
     if (childComp) {
-        const stepFieldsValues = this.computeStepFieldValues(
-            this.stepFields,
-            this.fieldsValues,
-            this.currStepNum
-        );
-        childComp.currStepNum = this.currStepNum;
-        childComp.step = JSON.stringify(stepFieldsValues);
-        childComp.refresh();
+      const stepFieldsValues = this.computeStepFieldValues(
+        this.stepFields,
+        this.fieldsValues,
+        this.currStepNum
+      );
+      childComp.currStepNum = this.currStepNum;
+      childComp.step = JSON.stringify(stepFieldsValues);
+      childComp.refresh();
     }
-}
+  }
 
 
   connectedCallback() {
@@ -161,11 +154,13 @@ refreshChildComponent() {
   refreshData() {
     console.log('Forcing data refresh...');
     if (this.wiredObjectNameResult) {
-        refreshApex(this.wiredObjectNameResult).then(() => {
-            this.loadCustomMetadataFields(); // Recharger la chaîne de méthodes
-        });
+      refreshApex(this.wiredObjectNameResult);
+      refreshApex(this.wiredCustomMetadataFieldsResult);
+      refreshApex(this.wiredObjectStatus).then(() => {
+        this.loadFieldsValues();
+      });
     }
-}
+  }
 
 
 
@@ -205,19 +200,9 @@ refreshChildComponent() {
   displayKeyFields(event) {
     this.currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
     let currentFields = this.stepFields.find(step => step.StepNum__c === this.currStepNum).stepFields;
-    this.refreshChild();
+    this.refreshChildComponent();
   }
 
-  refreshChild() {
-    console.log('refreshChild');
-    let comp = this.template.querySelector('c-custom-path-field');
-    if (comp) {
-      let stepfieldsValues = this.computeStepFieldValues(this.stepFields, this.fieldsValues, this.currStepNum);
-      comp.currStepNum = this.currStepNum;
-      comp.step = JSON.stringify(stepfieldsValues);
-      comp.refresh();
-    }
-  }
 
   computeStepFieldValues(stepFields, fieldsValues, currStepNum) {
     console.log('computeStepFieldValues');
