@@ -60,7 +60,7 @@ public with sharing class CustomPathController {
         
         SObject record = Database.query(query);
         for (FieldWrapper fw : fieldValues) {
-            fw.Value = (String) record.get(fw.FieldApiName);
+            fw.Value = String.valueOf(record.get(fw.FieldApiName));
         }
 
         return Json.serialize(fieldValues);
