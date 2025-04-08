@@ -70,7 +70,32 @@ export default class CustomPath extends LightningElement {
         ? 'slds-path__item slds-is-current slds-is-active'
         : 'slds-path__item slds-is-incomplete';
     });
+    this.stepFields = this.formattedSteps(this.stepFields);
+
+    console.log('this.stepFields ', this.stepFields);
   }
+
+  formattedSteps(steps) {
+    const activeStep = steps.find(s => s.IsActive);
+    const activeStepNum = activeStep ? activeStep.StepNum__c : 0;
+
+    return steps.map(step => {
+        let classNames = 'slds-path__item ';
+
+        if (step.StepNum__c < activeStepNum) {
+            classNames += 'slds-is-complete';
+        } else if (step.StepNum__c === activeStepNum) {
+            classNames += 'slds-is-current slds-is-active';
+        } else {
+            classNames += 'slds-is-incomplete';
+        }
+
+        return {
+            ...step,
+            classNames
+        };
+    });
+}
 
   // 5. Charger les valeurs des champs
   loadFieldsValues() {
@@ -211,9 +236,17 @@ export default class CustomPath extends LightningElement {
 
 
   displayKeyFields(event) {
+    const currentStep = event.target.closest('li');
+    currentStep.classList.add('slds-is-active');
+    this.template.querySelectorAll('li').forEach((item) => {
+        item.classList.remove('slds-is-active');
+    });
+
     this.currStepNum = Number(event.currentTarget.dataset.step); // Récupère la valeur de l'attribut data-step
     let currentFields = this.stepFields.find(step => step.StepNum__c === this.currStepNum).stepFields;
     this.refreshChildComponent();
+
+
   }
 
 
